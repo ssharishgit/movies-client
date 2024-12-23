@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { ChevronLeftIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useNavigate } from 'react-router-dom'
 
-const SeatLayouts = ({movie,theatre,index,showtimes,showdate,closeseats}) => {
-  const royalRef = React.createRef()
+const SeatLayouts = ({title,theatre,index,showdate,closeseats}) => {
   const [seatRow, setSeatRow] = useState(0)
   const [seatCol, setSeatCol] = useState(0)
   const [selectedIndex, setSelectedIndex] = useState(index)
   const [selectedSeats, setSelectedSeats] = useState([])
-  const [ticketPrice,setTicketPrice] = useState(180)
+  const [ticketPrice,setTicketPrice] = useState(0)
+  const navigate = useNavigate()
+
+  const shows = theatre.shows
+  const showObj = shows.find(ele=>ele.id === selectedIndex)
+  const selectedShow = showObj.time
 
   let date = new Date(showdate)
   let options = { weekday: 'long',month: 'short',day: 'numeric'}
@@ -20,40 +25,55 @@ const SeatLayouts = ({movie,theatre,index,showtimes,showdate,closeseats}) => {
   let btnStyle = "custombtn rounded py-1 w-28 h-10 bg-white border border-emerald-400 text-emerald-400"
 
   function setGridDisplay(){
-    const royalElement = royalRef.current
-    if (royalElement) {
-      const row = Number(royalElement.getAttribute("seatrow"))
-      const col = Number(royalElement.getAttribute("seatcol"))
-      setSeatRow(row)
-      setSeatCol(col)
-    }
+    setSeatRow(theatre.rows)
+    setSeatCol(theatre.cols)
+    setTicketPrice(theatre.ticketprice)
   }
   
   const showsClick = (element,index) => {
-    setSeatRow(element.rows)
-    setSeatCol(element.cols)
+    setSelectedSeats([])
     setSelectedIndex(index)
-    renderSeats()
   }
   const proceedToPay = () => {
-    console.log("Seats", selectedSeats);
+    navigate('/booktickets',{state:{theatre,formattedDate,showdate,selectedShow,selectedSeats,ticketPrice,selectedIndex}})
   };
   const renderSeats = () =>{
+    const bookings = showObj.booking
+    let bookedTickets = []
+    if(bookings.length > 0){
+      for( let b = 0;b < bookings.length; b++){
+        if(bookings[b].movie === title){
+          let d = new Date(bookings[b].date)
+          if(d.toDateString() === showdate.toDateString()){
+            bookedTickets = bookings[b].booked_seats
+          }
+        }
+      }
+    }
+
     const temp = []
     for(let i = 0;i < seatRow;i++){
       const seats =[]
       for(let j = 0;j < seatCol;j++){
         const isSelected = selectedSeats.includes(`${i}-${j}`);
-        seats.push(
+        const isBooked = bookedTickets.includes(`${i}-${j}`);
+        let btnDiv = ''
+        if(isBooked){
+          btnDiv =
+          <button key={`${i}-${j}`}
+            className={`seat text-[10px] text-center leading-6 w-6 max-h-6 m-1 cursor-auto rounded-sm bg-neutral-200 text-white`}
+          >{j + 1}</button>
+        }else{
+          btnDiv =
           <button
             key={`${i}-${j}`}
             className={`seat text-[10px] text-center cursor-pointer custombtn leading-6 w-6 max-h-6 m-1 rounded-sm 
               border ${isSelected ? 'bg-emerald-400 text-white' : 'border-emerald-400 text-emerald-400'}`}
             onClick={() => seatClick(i, j)}
           >{j + 1}</button>
-        )
-        // seats.push(<button key={j} className='seat text-[10px] text-center cursor-pointer custombtn
-        //    leading-6 w-6 max-h-6 m-1 rounded-sm  border border-emerald-400 text-emerald-400'>{j + 1}</button>)
+        }
+        
+        seats.push(btnDiv)
       }
       temp.push(
         <div key={i} className='flex' id={`row-${i}`}>
@@ -73,48 +93,81 @@ const SeatLayouts = ({movie,theatre,index,showtimes,showdate,closeseats}) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full h-lvh bg-white">
-        <div className='flex items-center justify-between pt-4 px-2'>
-          <div className='flex items-center'>
-            <button onClick={closeseats}  className="px-2">
-              <ChevronLeftIcon  className="size-6"/>
-            </button>
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+      <div className='w-full h-full flex flex-col bg-white'>
+        <header className='flex-shrink-0'>
+          <div className='flex items-center justify-between py-3 px-2'>
+            <div className='flex items-center'>
+              <button onClick={closeseats}  className='px-2'>
+                <ChevronLeftIcon  className='size-6'/>
+              </button>
+              <div>
+                <h2 className='text-lg font-semibold'>{title}</h2>
+                <h3 className='text-neutral-600 text-sm'>
+                  {theatre.venue+", "+theatre.location +' | '+ formattedDate +'  '+ selectedShow }
+                </h3>
+              </div>
+            </div>
             <div>
-              <h2 className="text-lg font-semibold">{movie}</h2>
-              <h3 className='text-neutral-600'>{theatre +" | "+ formattedDate +"  "+ showtimes[selectedIndex].time }</h3>
+              <button onClick={closeseats} className='p-2 '>
+                <XMarkIcon className='size-5' />
+              </button>
             </div>
           </div>
-          <div>
-            <button onClick={closeseats} className="p-2 ">
-              <XMarkIcon className='size-5' />
-            </button>
-          </div>
-        </div>
-        <div className='py-4'>
-          <header className='bg-slate-100 px-10'>
-            <div className="flex gap-2.5 py-4">
-              {showtimes.map((element, index) => (
+          <div className='bg-slate-100 px-10'>
+            <div className='flex gap-2.5 py-4 px-2'>
+              {shows.map((element, index) => (
                 <button
                 key={index}
-                className={`${btnStyle} ${selectedIndex === index ? 'active' : ''}`}
-                onClick={() => showsClick(element,index)}
+                className={`${btnStyle} ${selectedIndex === element.id ? 'active' : ''}`}
+                onClick={() => showsClick(element,element.id)}
                 >
                   {element.time}
                 </button>
               ))}
             </div>
-          </header>
-          <div className="text-sm px-[5%]">
-            <div className="text-neutral-600 py-2 my-4 border-b-2 max-h-96 overflow-y-auto">Rs. {ticketPrice}  PREMIUM</div>
-            <div ref={royalRef} id="seats-royal"  seatrow="10" seatcol="15">
+          </div>
+        </header>
+        <div className='flex-grow overflow-y-auto'>
+          <div className='text-sm px-[5%] pb-4'>
+            <div className='flex justify-between text-neutral-600 py-2 my-4 border-b-2'>
+              <div>
+                Rs. {ticketPrice} 
+                <span className='uppercase'>{' ' +theatre.seattype}</span>
+              </div>
+              <div className='flex justify-evenly gap-x-4'>
+                <div className='flex gap-x-1.5 items-center'>
+                  <button
+                    className='text-[10px] text-center leading-6 w-4 max-h-4 h-4 cursor-auto rounded-sm border border-emerald-400'
+                  >
+                  </button>
+                  <h3>Available</h3>
+                </div>
+                <div className='flex gap-x-1.5 items-center'>
+                  <button
+                    className='text-[10px] text-center leading-6 w-4 max-h-4 h-4 cursor-auto rounded-sm bg-emerald-400'
+                  >
+                  </button>
+                  <h3>Selected</h3>
+                </div>
+                <div className='flex gap-x-1.5 items-center'>
+                  <button
+                    className='text-[10px] text-center leading-6 w-4 max-h-4 h-4 cursor-auto rounded-sm bg-neutral-200'
+                  >
+                  </button>
+                  <h3>Booked</h3>
+                </div>
+              </div>
+            </div>
+            <div id='seats-royal'>
               {renderSeats()}
             </div>
           </div>
         </div>
-        <div className="fixed bottom-0 left-0 right-0 p-2.5 bg-white shadow text-center">
+        <div className={`flex-shrink-0 bottom-0 p-2.5 bg-white shadow-[0_-4px_12px_-2px_rgba(0,0,0,0.3)]
+          ${selectedSeats.length === 0 ? ' hidden' : ''} text-center text-sm`}>
           <button
-            className={`w-1/4 py-2 rounded bg-orange-400 text-white ${selectedSeats.length === 0 ? ' hidden' : ''}`}
+            className={`w-1/4 py-2 rounded-md bg-orange-400 text-white`}
             onClick={proceedToPay}
             disabled={selectedSeats.length === 0}
           >

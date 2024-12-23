@@ -9,17 +9,41 @@ const Shows = () => {
   const movieDetails = useSelector(store=>store.movie.items)
   const [showSeats,setShowSeats] = useState(false)
   const [showDate, setShowDate] = useState()
-  const [theatreName, setTheatreName] = useState('')
+  const [theatreDetails, setTheatreDetails] = useState([])
+  const [theatre, setTheatre] = useState('')
 
   const openSeatLayouts = () => {
     setShowSeats(true)
   }
 
+  const getAllTheatres = async ()=>{
+    try{
+      const res = await fetch('https://movies-server-34w8.onrender.com/theatres',{
+        method : 'get',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      let results = await res.json()
+      console.log(results.data)
+      setTheatreDetails(results.data)
+    }catch(err){
+      console.error(err)
+    }
+  }
+
   useEffect(() => {
-    setGridDisplay()
+    onInit()
+    getAllTheatres()
   }, [])
 
-  function setGridDisplay(){
+  useEffect(() => {
+    if(showSeats){
+      document.body.style.overflow = 'hidden'
+    }else{
+      document.body.style.overflow = 'auto'
+    }
+  }, [showSeats])
+
+  function onInit(){
     let tempDate = new Date()
     tempDate.setDate(tempDate.getDate() + 1)
     setShowDate(tempDate)
@@ -28,63 +52,10 @@ const Shows = () => {
   const [selectedIndex, setSelectedIndex] = useState(null)
   const [selectedShowDate, setSelectedShowDate] = useState(0)
 
-  const theatres = [
-    {
-      id:1,
-      "venue":"Broadway Cinemas",
-      housefull: false
-    },
-    {
-      id:2,
-      "venue":"Fun Republic Mall",
-      housefull: false
-    },
-    {
-      id:3,
-      "venue":"Karpagam Theatres 4K",
-      housefull: false
-    },
-    {
-      id:4,
-      "venue":"INOX: Prozone Mall",
-      housefull: false
-    },
-    {
-      id:5,
-      "venue":"PVR: Brookefields Mall",
-      housefull: false
-    },
-  ]
-  const shows = [
-    {
-      "id": "9",
-      "time": "09:00 AM",
-      "rows": 13,
-      "cols": 22,
-    },
-    {
-      "id": "1",
-      "time": "01:00 PM",
-      "rows": 10,
-      "cols": 20,
-    },
-    {
-      "id": "6",
-      "time": "06:00 PM",
-      "rows": 14,
-      "cols": 25,
-    },
-    {
-      "id": "10",
-      "time": "10:00 PM",
-      "rows": 12,
-      "cols": 20,
-    },
-  ]
-  let btnStyle = "custombtn rounded py-1 w-28 h-10 border border-emerald-400 text-emerald-400"
+  let btnStyle = "rounded py-1 w-28 h-10 border border-emerald-400 text-emerald-400"
   let showStyle = "customdate flex flex-col justify-center items-center w-12 border py-1 rounded-md"
-  const handleButtonClick = (venue,index) => {
-    setTheatreName(venue)
+  const showClick = (value,index) => {
+    setTheatre(value)
     setSelectedIndex(index)
     openSeatLayouts()
   }
@@ -117,7 +88,7 @@ const Shows = () => {
       "date": tempDate
     })
   }
-  const handleChange = (element,index) => {
+  const handleDateChange = (element,index) => {
     setShowDate(element.date)
     setSelectedShowDate(index)
   }
@@ -126,7 +97,7 @@ const Shows = () => {
       <div>
         {(movieDetails.length >0) ? 
         <div>
-          {showSeats && <SeatLayouts movie={movieDetails[0].title} theatre={theatreName} index={selectedIndex} showtimes={shows}
+          {showSeats && <SeatLayouts title={movieDetails[0].title} theatre={theatre} index={selectedIndex}
            showdate={showDate} closeseats={()=>setShowSeats(false)} />}
           <div className='w-5/6 mx-auto pt-8 py-4'>
             <h1 className='text-4xl my-2'>{movieDetails[0].title}</h1>
@@ -134,35 +105,32 @@ const Shows = () => {
           <div className='w-full'>
             <div className='border-b '></div>
           </div>
-          <div className="w-5/6 mx-auto flex gap-3 px-4 py-2">
+          <div className='w-5/6 mx-auto flex gap-3 px-4 py-2'>
             {dateDetails.map((element, index) => (
                 <button
                 key={index}
                 className={`${showStyle} ${selectedShowDate === index ? 'active' : ''}`}
-                onClick={() => handleChange(element,index)}
+                onClick={() => handleDateChange(element,index)}
                 >
                   <div className='uppercase text-neutral-500 text-[10px]'>{element.day}</div>
-                  <div className="uppercase leading-5">{element.number}</div>
-                  <div className="uppercase text-neutral-500 text-[10px]">{element.month}</div>
+                  <div className='font-medium leading-5'>{element.number}</div>
+                  <div className='uppercase text-neutral-500 text-[10px]'>{element.month}</div>
                 </button>
             ))}
           </div>
-          <div className='w-full'>
-            <div className='border-t'></div>
-          </div>
           <div className='w-full bg-gray-100 py-4'>
-            <div className="w-5/6 mx-auto bg-white">
-              {theatres.map((traget,i) => (
+            <div className='w-5/6 mx-auto bg-white'>
+              {theatreDetails.map((theatres,i) => (
                 <div className='flex items-center border-t py-4' key={i}>
                   <div className='w-1/4 py-4'>
-                    <h1 className='font-bold px-4'>{traget.venue}</h1>
+                    <h1 className='font-bold px-4'>{theatres.venue}</h1>
                   </div>
-                  <div className="flex gap-4 p-4">
-                    {shows.map((element, index) => (
+                  <div className='flex gap-4 p-4'>
+                    {theatres.shows.map((element, index) => (
                       <button
                       key={index}
                       className={`${btnStyle}`}
-                      onClick={() => handleButtonClick(traget.venue,index)}
+                      onClick={() => showClick(theatres,element.id)}
                       >
                         {element.time}
                       </button>

@@ -13,42 +13,66 @@ const Register = () => {
   const navigate = useNavigate()
 
   const collectData = async ()=>{
-    let response = await fetch('https://movies-server-hoe5.onrender.com/users/register',{
+    let response = await fetch('https://movies-server-34w8.onrender.com/users/register',{
       method : 'post',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username,email,password,language,location }),
     });
-    localStorage.setItem("user",JSON.stringify({ username,email,password,language,location }))
     let data =  await response.json()
-    console.log(data)
     if(data){
       alert(data.message)
-      navigate('/')
+      navigate('/signin')
     }
-    console.warn(response)
   }
   return (
-    <div>
-      <h1 className='w-60 text-2xl font-semibold mx-auto py-6'>User Registeration</h1>
-      <input className='w-60 block p-2 m-4 border-2 border-orange-300 mx-auto' 
-      onChange={(e) => setUserName(e.target.value)} value={username}
-      type="text" name="name" placeholder='Enter name'/>
-      <input className='w-60 block p-2 m-4 border-2 border-orange-300 mx-auto' 
-      onChange={(e) => setEmail(e.target.value)} value={email}
-      type="text" name="email" placeholder='Enter email'/>
-      <input className='w-60 block p-2 m-4 border-2 border-orange-300 mx-auto' 
-      onChange={(e) => setPassword(e.target.value)} value={password}
-      type="text" name="password" placeholder='Enter password'/>
-      <input className='w-60 block p-2 m-4 border-2 border-orange-300 mx-auto' 
-      onChange={(e) => setLanguage(e.target.value)} value={language}
-      type="text" name="language" placeholder='Preferred language'/>
-      <input className='w-60 block p-2 m-4 border-2 border-orange-300 mx-auto' 
-      onChange={(e) => setLocation(e.target.value)} value={location}
-      type="text" name="location" placeholder='Preferred location'/>
-      <button className='w-60 block p-2 m-4 bg-orange-400 mx-auto' 
-      onClick={collectData}
-      type="button">Sign Up</button>
-    </div>
+    <>
+      <div className='w-80 mx-auto'>
+        <h1 className='mt-8 text-center text-2xl/9 font-bold tracking-tight text-gray-900 py-6'>User Registeration</h1>
+        <div className="space-y-6">
+          <input id="username" type="text" name="username" value={username}
+          placeholder='Enter name'
+          onChange={(e) => setUserName(e.target.value)} 
+          className='block w-full rounded-md bg-white px-3 py-1.5 sm:text-sm/6
+                  outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 
+                  focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-orange-500' 
+          />
+          <input id="email" type="text" name="email" value={email}
+          placeholder='Enter email'
+          onChange={(e) => setEmail(e.target.value)} 
+          className='block w-full rounded-md bg-white px-3 py-1.5 sm:text-sm/6
+                  outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 
+                  focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-orange-500' 
+          />
+          <input id="password" type="text" name="password" value={password}
+          placeholder='Enter password'
+          onChange={(e) => setPassword(e.target.value)} 
+          className='block w-full rounded-md bg-white px-3 py-1.5 sm:text-sm/6
+                  outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 
+                  focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-orange-500' 
+          />
+          <input id="language" type="text" name="language" value={language}
+          placeholder='Enter language'
+          onChange={(e) => setLanguage(e.target.value)} 
+          className='block w-full rounded-md bg-white px-3 py-1.5 sm:text-sm/6
+                  outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 
+                  focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-orange-500' 
+          />
+          <input id="location" type="text" name="location" value={location}
+          placeholder='Enter location'
+          onChange={(e) => setLocation(e.target.value)} 
+          className='block w-full rounded-md bg-white px-3 py-1.5 sm:text-sm/6
+                  outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 
+                  focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-orange-500' 
+          />
+          <button type="button" onClick={collectData}
+          className='flex w-full justify-center rounded-md bg-orange-500 px-3 py-1.5 text-sm/6 font-medium text-white shadow-sm' 
+          >
+            Register
+          </button>
+        </div>
+      </div>
+    </>
+    
   )
 }
 
